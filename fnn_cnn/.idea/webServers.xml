@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="4194b85c-40c3-4980-a2eb-c22c39d06aa4" name="bt01" url="http://mt1.bsc.es">
+        <fileTransfer host="mt1.bsc.es" port="22" rootFolder="/home/nct01/nct01078" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
