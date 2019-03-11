@@ -1,82 +1,96 @@
 from __future__ import division
 import keras
-
-print('Using Keras version', keras.__version__)
-from keras.datasets import mnist
-
-# Load the MNIST dataset, already provided by Keras
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-
-# Check sizes of dataset
-print('Number of train examples', x_train.shape[0])
-print('Size of train examples', x_train.shape[1:])
-
-# Adapt the data as an input of a fully-connected (flatten to 1D)
-x_train = x_train.reshape(60000, 784)
-x_test = x_test.reshape(10000, 784)
-
-# Normalize data
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
-x_train = x_train / 255
-x_test = x_test / 255
-
-# Adapt the labels to the one-hot vector syntax required by the softmax
-from keras.utils import np_utils
-
-y_train = np_utils.to_categorical(y_train, 10)
-y_test = np_utils.to_categorical(y_test, 10)
-
-# Find which format to use (depends on the backend), and compute input_shape
-from keras import backend as K
-
-# MNIST resolution
-img_rows, img_cols, channels = 28, 28, 1
-
-if K.image_data_format() == 'channels_first':
-    x_train = x_train.reshape(x_train.shape[0], channels, img_rows, img_cols)
-    x_test = x_test.reshape(x_test.shape[0], channels, img_rows, img_cols)
-    input_shape = (1, img_rows, img_cols)
-else:
-    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, channels)
-    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, channels)
-    input_shape = (img_rows, img_cols, 1)
-
-# Define the NN architecture
+from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Flatten
+from keras import optimizers
+import numpy as np
+import sys
+from keras import backend as K
+import matplotlib
+# matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import os
+from PIL import Image
+import scipy.io
+
+# Check https://keras.io/preprocessing/image/#imagedatagenerator-class:
+#   - flow_from_directory
+#   - image augmentation
+# https://stackoverflow.com/questions/53037510/can-flow-from-directory-get-train-and-validation-data-from-the-same-directory-in
+# https://github.com/jfilter/split-folders
+
+print('Using Keras version', keras.__version__)
+
+
+path_images='/home/magi/mai/s2/dl/lab/datasets/101_ObjectCategories'
+path_annotation="/home/magi/mai/s2/dl/lab/datasets/Annotations"
+
+train_datagen = ImageDataGenerator(
+        rescale=1./255,
+        shear_range=0.2,
+        rotation_range=20,
+        brightness_range=(0.7,1.3),
+        horizontal_flip=True)
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_generator = train_datagen.flow_from_directory(
+        '../datasets/Images_split/train',
+        target_size=(64, 64),
+        batch_size=64,
+        class_mode='categorical')
+
+validation_generator = test_datagen.flow_from_directory(
+        '../datasets/Images_split/val',
+        target_size=(64, 64),
+        batch_size=64,
+        class_mode='categorical')
+
+# resolution
+img_rows, img_cols, channels = 64, 64, 3
+
+if K.image_data_format() == 'channels_first':
+    input_shape = (channels, img_rows, img_cols)
+else:
+    input_shape = (img_rows, img_cols, channels)
+
+# Define the NN architecture
 
 # Two hidden layers
 nn = Sequential()
-nn.add(Conv2D(64, 3, 3, activation='relu', input_shape=input_shape))
+nn.add(Conv2D(filters=16, kernel_size=(7, 7), strides=(1, 1), padding='SAME', activation='relu', input_shape=input_shape))
 nn.add(MaxPooling2D(pool_size=(2, 2)))
-nn.add(Conv2D(32, 3, 3, activation='relu'))
+nn.add(Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1), padding='SAME', activation='relu'))
+nn.add(MaxPooling2D(pool_size=(2, 2)))
+nn.add(Conv2D(filters=64, kernel_size=(3, 3), strides=(2, 2), padding='SAME', activation='relu'))
 nn.add(MaxPooling2D(pool_size=(2, 2)))
 nn.add(Flatten())
-nn.add(Dense(16, activation='relu'))
-nn.add(Dense(10, activation='softmax'))
-
-# Model visualization
-# We can plot the model by using the ```plot_model``` function. We need to install *pydot, graphviz and pydot-ng*.
-# from keras.util import plot_model
-# plot_model(nn, to_file='nn.png', show_shapes=true)
+nn.add(Dense(128, activation='relu'))
+nn.add(Dense(67, activation='softmax'))
 
 # Compile the NN
-nn.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
+# opt = optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.0)
+opt = optimizers.Adam(lr=0.001)
+nn.compile(opt, loss='categorical_crossentropy', metrics=['accuracy'])
+nn.build(input_shape)
+print(nn.summary())
 
 # Start training
-history = nn.fit(x_train, y_train, batch_size=128, epochs=20, validation_split=0.15)
+history = nn.fit_generator(
+          train_generator,
+          steps_per_epoch=13714/64,
+          epochs=500,
+          validation_data=validation_generator,
+          validation_steps=1906/64)
 
 # Evaluate the model with test set
-score = nn.evaluate(x_test, y_test, verbose=0)
-print('test loss:', score[0])
-print('test accuracy:', score[1])
+# score = nn.evaluate(x_test, y_test, verbose=0)
+# print('test loss:', score[0])
+# print('test accuracy:', score[1])
 
-##Store Plots
-import matplotlib
-
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+weights_file = "weights-INDOOR_smallNN_" + ".hdf5"
+nn.save_weights(weights_file, overwrite=True)
 
 # Accuracy plot
 plt.plot(history.history['acc'])
@@ -85,7 +99,7 @@ plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
 plt.legend(['train', 'val'], loc='upper left')
-plt.savefig('mnist_cnn_accuracy.pdf')
+plt.savefig('cifar10_cnn_accuracy.pdf')
 plt.close()
 # Loss plot
 plt.plot(history.history['loss'])
@@ -94,8 +108,9 @@ plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'val'], loc='upper left')
-plt.savefig('mnist_cnn_loss.pdf')
+plt.savefig('cifar10_cnn_loss.pdf')
 
+sys.exit()
 # Confusion Matrix
 from sklearn.metrics import classification_report, confusion_matrix
 import numpy as np
@@ -116,7 +131,7 @@ from keras.models import model_from_json
 nn_json = nn.to_json()
 with open('nn.json', 'w') as json_file:
     json_file.write(nn_json)
-weights_file = "weights-MNIST_" + str(score[1]) + ".hdf5"
+weights_file = "weights-CIFAR10_" + str(score[1]) + ".hdf5"
 nn.save_weights(weights_file, overwrite=True)
 
 # Loading model and weights
