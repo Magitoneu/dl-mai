@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0eda215c-856f-41cc-9d36-1cd83e820f01" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cifar_cnn_example.py" beforeDir="false" afterPath="$PROJECT_DIR$/cifar_cnn_example.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nn.json" beforeDir="false" afterPath="$PROJECT_DIR$/nn.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/weights-MNIST_0.9765.hdf5" beforeDir="false" />
-    </list>
+    <list default="true" id="0eda215c-856f-41cc-9d36-1cd83e820f01" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -129,12 +124,12 @@
       <workItem from="1551432174791" duration="2966000" />
       <workItem from="1551954446123" duration="3397000" />
       <workItem from="1552054869815" duration="59000" />
-      <workItem from="1552246351784" duration="4830000" />
+      <workItem from="1552246351784" duration="7343000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="20825000" />
+    <option name="totallyTimeSpent" value="23338000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="27" width="1920" height="1053" extended-state="6" />
@@ -153,7 +148,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="File Transfer" order="9" weight="0.24427481" />
       <window_info anchor="bottom" id="Database Changes" order="10" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="11" visible="true" weight="0.23118865" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="11" visible="true" weight="0.4274809" />
       <window_info anchor="bottom" id="Event Log" order="12" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="13" weight="0.3293348" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
