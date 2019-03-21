@@ -27,17 +27,18 @@ train_datagen = ImageDataGenerator(
 
 test_datagen = ImageDataGenerator(rescale=1. / 255)
 
+batch_size = 64
 # /home/nct01/nct01078
 train_generator = train_datagen.flow_from_directory(
     '../datasets/Images_split_ttv/train',
     target_size=(64, 64),
-    batch_size=128,
+    batch_size=batch_size,
     class_mode='categorical')
 
 validation_generator = test_datagen.flow_from_directory(
     '../datasets/Images_split_ttv/val',
     target_size=(64, 64),
-    batch_size=128,
+    batch_size=batch_size,
     class_mode='categorical')
 
 # resolution
@@ -71,10 +72,10 @@ es = EarlyStopping(monitor='val_loss', patience=5, mode='min')
 # Start training
 history = nn.fit_generator(
     train_generator,
-    steps_per_epoch=12467 / 128,
+    steps_per_epoch=12467 / batch_size,
     epochs=120,
     validation_data=validation_generator,
-    validation_steps=1532 / 128,
+    validation_steps=1532 / batch_size,
     callbacks=[es])
 
 # Evaluate the model with test set
