@@ -28,6 +28,29 @@ from collections import Counter
 import argparse
 import time
 import sys
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import json
+
+
+def load_config_file(nfile, abspath=False):
+    """
+    Read the configuration from a json file
+    :param abspath:
+    :param nfile:
+    :return:
+    """
+    ext = '.json' if 'json' not in nfile else ''
+    pre = '' if abspath else './'
+    fp = open(pre + nfile + ext, 'r')
+
+    s = ''
+
+    for l in fp:
+        s += l
+
+    return json.loads(s)
 
 
 def review_to_words(raw_review):
@@ -37,10 +60,31 @@ def review_to_words(raw_review):
     :param raw_review:
     :return:
     """
-    letters_only = re.sub("[^a-zA-Z@]", " ", raw_review)
+    letters_only = re.sub("[^a-zA-Z@]", " ", str(raw_review))
     words = letters_only.lower().split()
     meaningful_words = [w for w in words if not re.match("^[@]", w)]
     return " ".join(meaningful_words)
+
+
+def architecture(neurons, drop, nlayers, rnntype, embedding, numwords, impl=1):
+    """
+    RNN architecture
+    :return:
+    """
+    RNN = LSTM if rnntype == 'LSTM' else GRU
+    model = Sequential()
+    model.add(Embedding(numwords + 1, embedding, input_length=seq_len))
+    if nlayers == 1:
+        model.add(RNN(neurons, implementation=impl, recurrent_dropout=drop))
+    else:
+        model.add(RNN(neurons, implementation=impl, recurrent_dropout=drop, return_sequences=True))
+        for ii in range(1, nlayers - 1):
+            model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl, return_sequences=True))
+        model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl))
+
+    model.add(Dense(5))
+
+    return model
 
 
 if __name__ == '__main__':
@@ -48,10 +92,12 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', help="Verbose output (enables Keras verbose output)", action='store_true', default=False)
     parser.add_argument('--best', help="Save weights best in test", action='store_true', default=False)
     parser.add_argument('--tboard', help="Save log for tensorboard", action='store_true', default=False)
+    parser.add_argument('--config', default='config', help='Experiment configuration')
     args = parser.parse_args()
 
+    config = load_config_file(args.config)
+
     verbose = 1 if args.verbose else 0
-    impl = 2
 
     print("Starting:", time.ctime())
 
@@ -73,7 +119,7 @@ if __name__ == '__main__':
     # Convert words to integers
     counts = Counter(words)
 
-    numwords = 200  # Limit the number of words to use
+    numwords = config['arch']['nwords']  # Limit the number of words to use
     vocab = sorted(counts, key=counts.get, reverse=True)[:numwords]
     vocab_to_int = {word: ii for ii, word in enumerate(vocab, 1)}
 
@@ -112,37 +158,28 @@ if __name__ == '__main__':
 
     ############################################
     # Model
-    drop = 0.2
-    nlayers = 5  # >= 1
-    RNN = LSTM  # GRU
-
-    neurons = 256
-    embedding = 256
-
-    model = Sequential()
-    model.add(Embedding(numwords + 1, embedding, input_length=seq_len))
-
-    if nlayers == 1:
-        model.add(RNN(neurons, implementation=impl, recurrent_dropout=drop))
-    else:
-        model.add(RNN(neurons, implementation=impl, recurrent_dropout=drop, return_sequences=True))
-        for i in range(1, nlayers - 1):
-            model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl, return_sequences=True))
-        model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl))
-
-    model.add(Dense(5))
-    model.add(Activation('softmax'))
+    model = architecture(neurons=config['arch']['neurons'],
+                         drop=config['arch']['drop'],
+                         nlayers=config['arch']['nlayers'],
+                         rnntype=config['arch']['rnn'],
+                         embedding=config['arch']['emb'],
+                         numwords=numwords, impl=2)
 
     ############################################
     # Training
 
-    learning_rate = 0.001
-    #optimizer = SGD(lr=learning_rate, momentum=0.95)
-    optimizer = Adam(lr=learning_rate)
+    learning_rate = config['training']['lrate']
+    momentum = config['training']['momentum']
+    if config['training']['optimizer'] == 'sgd':
+        optimizer = SGD(lr=learning_rate, momentum=momentum)
+    elif config['training']['optimizer'] == 'adam':
+        optimizer = Adam(lr=learning_rate)
+    else:
+        raise NameError('Bad optimizer')
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-    epochs = 50
-    batch_size = 100
+    epochs = config['training']['epochs']
+    batch_size = config['training']['batch']
 
     train_y_c = np_utils.to_categorical(train_y, 5)
 
@@ -157,7 +194,8 @@ if __name__ == '__main__':
         tensorboard = TensorBoard(log_dir='logs/{}'.format(time.time()))
         callbacks.append(tensorboard)
 
-    model.fit(train_x, train_y_c,
+    print("Start training")
+    history = model.fit(train_x, train_y_c,
               batch_size=batch_size,
               epochs=epochs,
               validation_split=0.2,
@@ -166,15 +204,55 @@ if __name__ == '__main__':
 
     ############################################
     # Results
+    results_name = '_'.join([str(v) for v in list(config['arch'].values())] + [str(v) for v in list(config['training'].values())])
+    results_file = results_name + '.txt'
+
+    # Accuracy plot
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'val'], loc='upper left')
+    plt.savefig(results_name + '_acc.pdf')
+    plt.close()
+    # Loss plot
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'val'], loc='upper left')
+    plt.savefig(results_name + '_loss.pdf')
 
     test_y_c = np_utils.to_categorical(test_y, 5)
     score, acc = model.evaluate(test_x, test_y_c,
                                 batch_size=batch_size,
                                 verbose=verbose)
-    print()
-    print('Test ACC=', acc)
 
     test_pred = model.predict_classes(test_x, verbose=verbose)
+
+    with open(results_file, 'w') as file:
+        file.write("acc: %.3f\n\n" % acc)
+        file.write('Confusion Matrix')
+        cm = confusion_matrix(test_y, test_pred)
+        comma = ","
+        s = ''
+        for row in cm:
+            ss = [str(v) for v in row]
+            l = comma.join(ss)
+            s = s + '\n' + l
+        file.write(s + '\n')
+        cr = classification_report(test_y, test_pred, output_dict=True)
+        average = list(cr['weighted avg'].values())
+        average = ["%.3f" % v for v in average]
+        file.write("\nWeighted average: \n" + comma.join(list(cr['weighted avg'].keys())) + '\n')
+        file.write(comma.join(average) + '\n')
+        file.write('\nClassification Report\n')
+        file.write(str(classification_report(test_y, test_pred)))
+
+    print()
+    print('Test ACC=', acc)
 
     print()
     print('Confusion Matrix')
