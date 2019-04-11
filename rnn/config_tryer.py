@@ -2,6 +2,7 @@ import json
 import os
 from copy import deepcopy
 
+
 def load_config_file(nfile, abspath=False):
     """
     Read the configuration from a json file
@@ -22,14 +23,16 @@ def load_config_file(nfile, abspath=False):
 
 
 def execute(config):
-    with open("config.json", "w") as jsonFile:
+    with open("config_tmp.json", "w") as jsonFile:
         json.dump(config, jsonFile)
+    print('Executing config:', config)
     os.system("python sentiment.py --verbose --best")
 
 
 if __name__ == '__main__':
     config = load_config_file('config')
 
+    print('Executing config:', config)
     os.system("python sentiment.py --verbose --best")
 
     config1 = deepcopy(config)
@@ -57,18 +60,18 @@ if __name__ == '__main__':
     execute(config3)
     execute(config4)
 
-    gconfig1 = deepcopy(config1)
-    gconfig2 = deepcopy(config2)
-    gconfig3 = deepcopy(config3)
-    gconfig4 = deepcopy(config4)
-
-    gconfig1['arch']['rnn'] = "GRU"
-    gconfig2['arch']['rnn'] = "GRU"
-    gconfig3['arch']['rnn'] = "GRU"
-    gconfig4['arch']['rnn'] = "GRU"
-
-    execute(gconfig1)
-    execute(gconfig2)
-    execute(gconfig3)
-    execute(gconfig4)
+#    gconfig2 = deepcopy(config2)
+#    gconfig1 = deepcopy(config1)
+#    gconfig3 = deepcopy(config3)
+#    gconfig4 = deepcopy(config4)
+#
+#    gconfig1['arch']['rnn'] = "GRU"
+#    gconfig2['arch']['rnn'] = "GRU"
+#    gconfig3['arch']['rnn'] = "GRU"
+#    gconfig4['arch']['rnn'] = "GRU"
+#
+#    execute(gconfig1)
+#    execute(gconfig2)
+#    execute(gconfig3)
+#    execute(gconfig4)
 

@@ -92,7 +92,7 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', help="Verbose output (enables Keras verbose output)", action='store_true', default=False)
     parser.add_argument('--best', help="Save weights best in test", action='store_true', default=False)
     parser.add_argument('--tboard', help="Save log for tensorboard", action='store_true', default=False)
-    parser.add_argument('--config', default='config', help='Experiment configuration')
+    parser.add_argument('--config', default='config_tmp', help='Experiment configuration')
     args = parser.parse_args()
 
     config = load_config_file(args.config)
