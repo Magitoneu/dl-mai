@@ -1,1 +1,13 @@
-{"arch": {"nwords": 512, "neurons": 64, "rnn": "GRU", "drop": 0.2, "nlayers": 5, "emb": 128}, "training": {"batch": 32, "epochs": 75, "optimizer": "adam", "lrate": 0.001, "momentum": 0.95}}
+{"arch":
+{"rnn": "LSTM",
+  "neurons": 64,
+  "emb": 20,
+  "drop": 0.2,
+  "nlayers": 1,
+  "nwords": 200},
+  "training": {
+    "batch": 100,
+    "optimizer": "sgd",
+    "epochs": 50,
+    "momentum": 0.95,
+    "lrate": 0.01}}
