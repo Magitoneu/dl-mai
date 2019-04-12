@@ -36,11 +36,10 @@ if __name__ == '__main__':
     os.system("python sentiment.py --verbose --best --config config")
 
     config1 = deepcopy(config)
-    config1['arch']['3'] = 3
+    config1['arch']['neurons'] = 128
 
-    config2 = deepcopy(config1)
-    config2['training']['optimizer'] = 'adam'
-    config2['training']['lrate'] = 0.001
+    config2 = deepcopy(config)
+    config2['arch']['nlayers'] = 4
 
     config3 = deepcopy(config2)
     config3['arch']['neurons'] = 128

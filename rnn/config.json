@@ -1,13 +1,13 @@
 {"arch":
 {"rnn": "LSTM",
   "neurons": 64,
-  "emb": 20,
+  "emb": 64,
   "drop": 0.0,
-  "nlayers": 1,
-  "nwords": 200},
+  "nlayers": 2,
+  "nwords": 300},
   "training": {
     "batch": 32,
-    "optimizer": "sgd",
-    "epochs": 15,
+    "optimizer": "adam",
+    "epochs": 25,
     "momentum": 0.95,
-    "lrate": 0.01}}
+    "lrate": 0.001}}

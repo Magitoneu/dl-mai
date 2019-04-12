@@ -22,7 +22,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Embedding
 from keras.layers import LSTM, GRU
 from keras.optimizers import RMSprop, Adam, Adamax, Nadam, SGD
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras.utils import np_utils
 from keras.preprocessing.sequence import pad_sequences
 from collections import Counter
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     # Convert words to integers
     counts = Counter(words)
 
-    numwords = config['arch']['nwords']  # Limit the number of words to use
+    numwords = 300  # Limit the number of words to use
     vocab = sorted(counts, key=counts.get, reverse=True)[:numwords]
     vocab_to_int = {word: ii for ii, word in enumerate(vocab, 1)}
 
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     # Find the number of reviews with zero length after the data pre-processing
     review_len = Counter([len(x) for x in review_ints])
     print("Zero-length reviews: {}".format(review_len[0]))
-    print("Maximum review length: {}".format(150))
+    print("Maximum review length: {}".format(max(review_len)))
     print("Average review length: {}".format(np.mean(list(review_len.values()))))
 
     # Remove those reviews with zero length and its corresponding label
@@ -215,6 +215,9 @@ if __name__ == '__main__':
     if args.tboard:
         tensorboard = TensorBoard(log_dir='logs/{}'.format(time.time()))
         callbacks.append(tensorboard)
+
+    es = EarlyStopping(monitor='val_loss', patience=5, mode='min')
+    callbacks.append(es)
 
     print('X example: ', train_x[0:5])
     print('Y example: ', train_y_c[0:5])
