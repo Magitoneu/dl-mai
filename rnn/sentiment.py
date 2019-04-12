@@ -21,17 +21,18 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Embedding
 from keras.layers import LSTM, GRU
-from keras.optimizers import RMSprop, SGD, Adam
+from keras.optimizers import RMSprop, Adam, Adamax, Nadam
 from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras.utils import np_utils
+from keras.preprocessing.sequence import pad_sequences
 from collections import Counter
 import argparse
 import time
-import sys
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import json
+import sys
 
 
 def load_config_file(nfile, abspath=False):
@@ -66,7 +67,7 @@ def review_to_words(raw_review):
     return " ".join(meaningful_words)
 
 
-def architecture(neurons, drop, nlayers, rnntype, embedding, numwords, impl=1):
+def architecture(neurons, drop, nlayers, rnntype, embedding, numwords, seq_len, impl=1):
     """
     RNN architecture
     :return:
@@ -83,6 +84,7 @@ def architecture(neurons, drop, nlayers, rnntype, embedding, numwords, impl=1):
         model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl))
 
     model.add(Dense(5))
+    model.add(Activation('softmax'))
 
     return model
 
@@ -97,6 +99,8 @@ if __name__ == '__main__':
 
     config = load_config_file(args.config)
 
+    print(config)
+
     verbose = 1 if args.verbose else 0
 
     print("Starting:", time.ctime())
@@ -104,12 +108,25 @@ if __name__ == '__main__':
     ############################################
     # Data
 
-    review = pandas.read_csv("../datasets/amazon_alexa.tsv", delimiter='\t')
-#    review = pandas.read_csv("Presidential.csv")
+    review = pandas.read_csv("../datasets/kindle_reviews.csv", delimiter=',')
+
+    overall_1 = review['overall'] == 1
+    overall_2 = review['overall'] == 2
+    overall_3 = review['overall'] == 3
+    overall_4 = review['overall'] == 4
+    overall_5 = review['overall'] == 5
+
+    reviews1 = review[overall_1].sample(n=min(1500, sum(overall_1)))
+    reviews2 = review[overall_2].sample(n=min(1500, sum(overall_2)))
+    reviews3 = review[overall_3].sample(n=min(1500, sum(overall_3)))
+    reviews4 = review[overall_4].sample(n=min(1500, sum(overall_4)))
+    reviews5 = review[overall_5].sample(n=min(1500, sum(overall_5)))
+
+    review = pandas.concat([reviews1, reviews2, reviews3, reviews4, reviews5])
 
     # Pre-process the review and store in a separate column
-    review['clean_review'] = review['verified_reviews'].apply(lambda x: review_to_words(x))
-    review['rating'] = review['rating'].apply(lambda x: x - 1)
+    review['clean_review'] = review['reviewText'].apply(lambda x: review_to_words(x))
+    review['rating'] = review['overall'].apply(lambda x: x - 1)
     print(review.head())
 
     # Join all the words in review to build a corpus
@@ -141,12 +158,8 @@ if __name__ == '__main__':
     review = review.iloc[review_idx]
     review_ints = [review for review in review_ints if len(review) > 0]
 
-    seq_len = max(review_len)
-    features = np.zeros((len(review_ints), seq_len), dtype=int)
-    for i, row in enumerate(review_ints):
-        features[i, -len(row):] = np.array(row)[:seq_len]
-
-    test_size = 0.2
+    test_size = 0.1
+    features = pad_sequences(review_ints, maxlen=max(review_len))
     train_x, test_x, train_y, test_y = train_test_split(features, labels, test_size=test_size)
 
     print("\t\t\tFeature Shapes:")
@@ -163,20 +176,27 @@ if __name__ == '__main__':
                          nlayers=config['arch']['nlayers'],
                          rnntype=config['arch']['rnn'],
                          embedding=config['arch']['emb'],
-                         numwords=numwords, impl=2)
+                         numwords=numwords,
+                         seq_len=max(review_len), impl=2)
 
     ############################################
+
     # Training
 
     learning_rate = config['training']['lrate']
     momentum = config['training']['momentum']
-    if config['training']['optimizer'] == 'sgd':
-        optimizer = SGD(lr=learning_rate, momentum=momentum)
+    # (rmsprop, adam, adamax, adagrad, adadelta, nadam)
+    if config['training']['optimizer'] == 'nadam':
+        optimizer = Nadam(lr=learning_rate)
     elif config['training']['optimizer'] == 'adam':
         optimizer = Adam(lr=learning_rate)
+    elif config['training']['optimizer'] == 'adamax':
+        optimizer = Adamax(lr=learning_rate)
     else:
         raise NameError('Bad optimizer')
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+
+    print(model.summary())
 
     epochs = config['training']['epochs']
     batch_size = config['training']['batch']
@@ -194,11 +214,13 @@ if __name__ == '__main__':
         tensorboard = TensorBoard(log_dir='logs/{}'.format(time.time()))
         callbacks.append(tensorboard)
 
+    print('X example: ', train_x[0:5])
+    print('Y example: ', train_y_c[0:5])
     print("Start training")
     history = model.fit(train_x, train_y_c,
               batch_size=batch_size,
               epochs=epochs,
-              validation_split=0.2,
+              validation_split=0.1,
               callbacks=callbacks,
               verbose=verbose)
 
