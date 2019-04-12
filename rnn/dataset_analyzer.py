@@ -8,10 +8,10 @@ path = '../datasets/amazon_alexa.tsv'
 classes = {}
 all_classes = []
 
-Tweet = pd.read_csv("../datasets/kindle_reviews.csv", delimiter=',')
+Tweet = pd.read_csv("../datasets/amazon_alexa.tsv", delimiter='\t')
 
 
-for rating in Tweet['overall']:
+for rating in Tweet['rating']:
     all_classes.append(rating)
 
     if rating in classes:

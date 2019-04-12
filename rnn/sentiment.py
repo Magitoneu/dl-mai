@@ -21,7 +21,7 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Embedding
 from keras.layers import LSTM, GRU
-from keras.optimizers import RMSprop, Adam, Adamax, Nadam
+from keras.optimizers import RMSprop, Adam, Adamax, Nadam, SGD
 from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras.utils import np_utils
 from keras.preprocessing.sequence import pad_sequences
@@ -115,12 +115,11 @@ if __name__ == '__main__':
     overall_3 = review['overall'] == 3
     overall_4 = review['overall'] == 4
     overall_5 = review['overall'] == 5
-
-    reviews1 = review[overall_1].sample(n=min(1500, sum(overall_1)))
-    reviews2 = review[overall_2].sample(n=min(1500, sum(overall_2)))
-    reviews3 = review[overall_3].sample(n=min(1500, sum(overall_3)))
-    reviews4 = review[overall_4].sample(n=min(1500, sum(overall_4)))
-    reviews5 = review[overall_5].sample(n=min(1500, sum(overall_5)))
+    reviews1 = review[overall_1].sample(n=min(1500, sum(overall_1)), random_state=1337)
+    reviews2 = review[overall_2].sample(n=min(1500, sum(overall_2)), random_state=1337)
+    reviews3 = review[overall_3].sample(n=min(1500, sum(overall_3)), random_state=1337)
+    reviews4 = review[overall_4].sample(n=min(1500, sum(overall_4)), random_state=1337)
+    reviews5 = review[overall_5].sample(n=min(1500, sum(overall_5)), random_state=1337)
 
     review = pandas.concat([reviews1, reviews2, reviews3, reviews4, reviews5])
 
@@ -150,7 +149,8 @@ if __name__ == '__main__':
     # Find the number of reviews with zero length after the data pre-processing
     review_len = Counter([len(x) for x in review_ints])
     print("Zero-length reviews: {}".format(review_len[0]))
-    print("Maximum review length: {}".format(max(review_len)))
+    print("Maximum review length: {}".format(150))
+    print("Average review length: {}".format(np.mean(list(review_len.values()))))
 
     # Remove those reviews with zero length and its corresponding label
     review_idx = [idx for idx, review in enumerate(review_ints) if len(review) > 0]
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     review_ints = [review for review in review_ints if len(review) > 0]
 
     test_size = 0.1
-    features = pad_sequences(review_ints, maxlen=max(review_len))
+    features = pad_sequences(review_ints, maxlen=150)
     train_x, test_x, train_y, test_y = train_test_split(features, labels, test_size=test_size)
 
     print("\t\t\tFeature Shapes:")
@@ -177,7 +177,7 @@ if __name__ == '__main__':
                          rnntype=config['arch']['rnn'],
                          embedding=config['arch']['emb'],
                          numwords=numwords,
-                         seq_len=max(review_len), impl=2)
+                         seq_len=150, impl=2)
 
     ############################################
 
@@ -190,6 +190,8 @@ if __name__ == '__main__':
         optimizer = Nadam(lr=learning_rate)
     elif config['training']['optimizer'] == 'adam':
         optimizer = Adam(lr=learning_rate)
+    elif config['training']['optimizer'] == 'sgd':
+        optimizer = SGD(lr=learning_rate)
     elif config['training']['optimizer'] == 'adamax':
         optimizer = Adamax(lr=learning_rate)
     else:

@@ -7,7 +7,7 @@
   "nwords": 200},
   "training": {
     "batch": 32,
-    "optimizer": "adam",
-    "epochs": 20,
+    "optimizer": "sgd",
+    "epochs": 15,
     "momentum": 0.95,
-    "lrate": 0.001}}
+    "lrate": 0.01}}
