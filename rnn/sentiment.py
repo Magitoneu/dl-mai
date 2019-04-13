@@ -32,6 +32,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import json
+from nltk.corpus import stopwords
 import sys
 
 
@@ -64,6 +65,7 @@ def review_to_words(raw_review):
     letters_only = re.sub("[^a-zA-Z@]", " ", str(raw_review))
     words = letters_only.lower().split()
     meaningful_words = [w for w in words if not re.match("^[@]", w)]
+    #meaningful_words = [w for w in meaningful_words if w not in stopwords.words('english')]
     return " ".join(meaningful_words)
 
 
@@ -136,7 +138,7 @@ if __name__ == '__main__':
     # Convert words to integers
     counts = Counter(words)
 
-    numwords = 300  # Limit the number of words to use
+    numwords = config['arch']['nwords']  # Limit the number of words to use
     vocab = sorted(counts, key=counts.get, reverse=True)[:numwords]
     vocab_to_int = {word: ii for ii, word in enumerate(vocab, 1)}
 
@@ -160,7 +162,7 @@ if __name__ == '__main__':
     review_ints = [review for review in review_ints if len(review) > 0]
 
     test_size = 0.1
-    features = pad_sequences(review_ints, maxlen=150)
+    features = pad_sequences(review_ints, maxlen=300)
     train_x, test_x, train_y, test_y = train_test_split(features, labels, test_size=test_size)
 
     print("\t\t\tFeature Shapes:")
@@ -178,7 +180,7 @@ if __name__ == '__main__':
                          rnntype=config['arch']['rnn'],
                          embedding=config['arch']['emb'],
                          numwords=numwords,
-                         seq_len=150, impl=2)
+                         seq_len=300, impl=2)
 
     ############################################
 
@@ -195,6 +197,8 @@ if __name__ == '__main__':
         optimizer = SGD(lr=learning_rate)
     elif config['training']['optimizer'] == 'adamax':
         optimizer = Adamax(lr=learning_rate)
+    elif config['training']['optimizer'] == 'rmsprop':
+        optimizer = RMSprop(lr=learning_rate)
     else:
         raise NameError('Bad optimizer')
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
@@ -220,8 +224,6 @@ if __name__ == '__main__':
     es = EarlyStopping(monitor='val_loss', patience=5, mode='min')
     callbacks.append(es)
 
-    print('X example: ', train_x[0:5])
-    print('Y example: ', train_y_c[0:5])
     print("Start training")
     history = model.fit(train_x, train_y_c,
               batch_size=batch_size,
@@ -232,7 +234,7 @@ if __name__ == '__main__':
 
     ############################################
     # Results
-    results_name = '_'.join([str(v) for v in list(config['arch'].values())] + [str(v) for v in list(config['training'].values())]) + [str(v) for v in list(config['dataset'].values()]
+    results_name = '_'.join([str(v) for v in list(config['arch'].values())] + [str(v) for v in list(config['training'].values())] + [str(v) for v in list(config['dataset'].values())])
     results_file = results_name + '.txt'
 
     # Accuracy plot

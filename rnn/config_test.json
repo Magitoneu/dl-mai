@@ -3,11 +3,14 @@
   "neurons": 64,
   "emb": 64,
   "drop": 0.0,
-  "nlayers": 3,
-  "nwords": 500},
+  "nlayers": 2,
+  "nwords": 300},
   "training": {
     "batch": 32,
     "optimizer": "adam",
-    "epochs": 30,
+    "epochs": 25,
     "momentum": 0.95,
-    "lrate": 0.0002}}
+    "lrate": 0.001},
+"dataset": {
+    "n_samples": 1500
+}}

@@ -1,0 +1,25 @@
+acc: 0.449
+
+Confusion Matrix
+105,20,9,5,6
+72,37,38,12,7
+27,21,44,42,8
+8,8,20,71,44
+11,5,6,44,80
+
+Weighted average: 
+precision,recall,f1-score,support
+0.442,0.449,0.433,750.000
+
+Classification Report
+              precision    recall  f1-score   support
+
+           0       0.47      0.72      0.57       145
+           1       0.41      0.22      0.29       166
+           2       0.38      0.31      0.34       142
+           3       0.41      0.47      0.44       151
+           4       0.55      0.55      0.55       146
+
+   micro avg       0.45      0.45      0.45       750
+   macro avg       0.44      0.46      0.44       750
+weighted avg       0.44      0.45      0.43       750

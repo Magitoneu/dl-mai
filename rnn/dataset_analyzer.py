@@ -4,14 +4,14 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 
-path = '../datasets/amazon_alexa.tsv'
+path = '../datasets/kindle_reviews.csv'
 classes = {}
 all_classes = []
 
-Tweet = pd.read_csv("../datasets/amazon_alexa.tsv", delimiter='\t')
+Tweet = pd.read_csv(path, delimiter=',')
 
 
-for rating in Tweet['rating']:
+for rating in Tweet['overall']:
     all_classes.append(rating)
 
     if rating in classes:
