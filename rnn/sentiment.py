@@ -115,11 +115,12 @@ if __name__ == '__main__':
     overall_3 = review['overall'] == 3
     overall_4 = review['overall'] == 4
     overall_5 = review['overall'] == 5
-    reviews1 = review[overall_1].sample(n=min(1500, sum(overall_1)), random_state=1337)
-    reviews2 = review[overall_2].sample(n=min(1500, sum(overall_2)), random_state=1337)
-    reviews3 = review[overall_3].sample(n=min(1500, sum(overall_3)), random_state=1337)
-    reviews4 = review[overall_4].sample(n=min(1500, sum(overall_4)), random_state=1337)
-    reviews5 = review[overall_5].sample(n=min(1500, sum(overall_5)), random_state=1337)
+    n_samples = config['dataset']['n_samples']
+    reviews1 = review[overall_1].sample(n=min(n_samples, sum(overall_1)), random_state=1337)
+    reviews2 = review[overall_2].sample(n=min(n_samples, sum(overall_2)), random_state=1337)
+    reviews3 = review[overall_3].sample(n=min(n_samples, sum(overall_3)), random_state=1337)
+    reviews4 = review[overall_4].sample(n=min(n_samples, sum(overall_4)), random_state=1337)
+    reviews5 = review[overall_5].sample(n=min(n_samples, sum(overall_5)), random_state=1337)
 
     review = pandas.concat([reviews1, reviews2, reviews3, reviews4, reviews5])
 
@@ -231,7 +232,7 @@ if __name__ == '__main__':
 
     ############################################
     # Results
-    results_name = '_'.join([str(v) for v in list(config['arch'].values())] + [str(v) for v in list(config['training'].values())])
+    results_name = '_'.join([str(v) for v in list(config['arch'].values())] + [str(v) for v in list(config['training'].values())]) + [str(v) for v in list(config['dataset'].values()]
     results_file = results_name + '.txt'
 
     # Accuracy plot
