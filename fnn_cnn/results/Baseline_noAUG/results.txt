@@ -1,0 +1,78 @@
+{'precision': 0.17360356138121721, 'support': 1617, 'recall': 0.2077922077922078, 'f1-score': 0.17304537316912327}
+
+
+precision    recall  f1-score   support
+
+           toystore       0.16      0.39      0.23        62
+             garage       0.00      0.00      0.00        14
+        studiomusic       0.17      0.16      0.16        19
+           gameroom       0.18      0.54      0.27        41
+            bowling       0.19      0.28      0.22        61
+       concert_hall       0.50      0.19      0.28        21
+        dining_room       0.26      0.35      0.30        66
+      laboratorywet       0.19      0.16      0.17        38
+          artstudio       0.18      0.09      0.12        22
+     airport_inside       0.00      0.00      0.00        11
+         auditorium       0.24      0.48      0.32        52
+         winecellar       0.00      0.00      0.00        12
+       kindergarden       0.50      0.06      0.10        18
+ restaurant_kitchen       0.00      0.00      0.00        12
+        waitingroom       0.56      0.42      0.48        12
+          classroom       0.00      0.00      0.00        13
+           corridor       0.00      0.00      0.00        12
+          tv_studio       0.20      0.17      0.18        12
+                bar       0.18      0.18      0.18        11
+              lobby       0.41      0.56      0.47        36
+         inside_bus       0.00      0.00      0.00        27
+         stairscase       0.00      0.00      0.00        14
+             bakery       0.33      0.04      0.06        28
+           cloister       0.00      0.00      0.00        11
+        locker_room       0.00      0.00      0.00        13
+             office       0.20      0.09      0.13        11
+       dentaloffice       0.00      0.00      0.00        14
+      inside_subway       0.00      0.00      0.00        11
+            kitchen       0.55      0.55      0.55        11
+      church_inside       0.32      0.36      0.34        22
+      children_room       0.21      0.21      0.21        24
+          hairsalon       0.00      0.00      0.00        25
+       meeting_room       0.00      0.00      0.00        11
+               mall       0.00      0.00      0.00        11
+            library       0.32      0.28      0.30        47
+       trainstation       0.00      0.00      0.00        17
+           shoeshop       0.00      0.00      0.00        14
+       movietheater       0.20      0.35      0.26        74
+            florist       0.00      0.00      0.00        13
+             closet       0.08      0.03      0.05        29
+             casino       0.00      0.00      0.00        12
+       grocerystore       0.17      0.21      0.19        72
+               deli       0.00      0.00      0.00        11
+             buffet       0.30      0.35      0.32        26
+         videostore       0.00      0.00      0.00        19
+         greenhouse       0.35      0.29      0.32        24
+         restaurant       0.44      0.44      0.44        18
+         livingroom       0.00      0.00      0.00        18
+     operating_room       0.00      0.00      0.00        15
+            nursery       0.00      0.00      0.00        12
+      clothingstore       0.00      0.00      0.00        14
+                gym       0.26      0.33      0.29        39
+           bathroom       0.34      0.67      0.45        18
+          warehouse       0.00      0.00      0.00        11
+         laundromat       0.11      0.29      0.16        52
+         prisoncell       0.00      0.00      0.00        12
+             pantry       0.00      0.00      0.00        13
+             museum       0.00      0.00      0.00        16
+          bookstore       0.00      0.00      0.00        12
+fastfood_restaurant       0.24      0.31      0.27        55
+             subway       0.06      0.03      0.04        36
+      jewelleryshop       0.29      0.12      0.17        16
+         poolinside       0.05      0.06      0.05        18
+           elevator       0.00      0.00      0.00        11
+       hospitalroom       0.33      0.07      0.11        15
+            bedroom       0.18      0.31      0.23        52
+       computerroom       0.25      0.07      0.11        28
+
+          micro avg       0.21      0.21      0.21      1617
+          macro avg       0.14      0.14      0.13      1617
+       weighted avg       0.17      0.21      0.17      1617
+
+Test accuracy:  0.2077922077922078

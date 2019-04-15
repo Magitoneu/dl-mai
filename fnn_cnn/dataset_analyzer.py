@@ -4,7 +4,7 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 
-path = '../datasets/Images'
+path = '../datasets/Images_split_ttv/train'
 classes = {}
 all_classes = []
 for root, dirs, files in os.walk(path, topdown=True):
@@ -19,6 +19,7 @@ for root, dirs, files in os.walk(path, topdown=True):
         all_classes.append(path_parts[-1])
 
 print(classes)
+print(all_classes)
 #plt.bar(classes.keys(), classes.values(), color='b')
 #plt.xticks([i for i in range(0, 67)], classes.keys(), rotation='vertical')
 #plt.show()

@@ -1,16 +1,17 @@
 {"arch":
 {"rnn": "LSTM",
-  "neurons": 64,
-  "emb": 64,
-  "drop": 0.0,
-  "nlayers": 2,
-  "nwords": 300},
+  "neurons": 32,
+  "emb": 32,
+  "drop": 0.2,
+  "nlayers": 1,
+  "nwords": 1000,
+  "reg": 0},
   "training": {
-    "batch": 32,
-    "optimizer": "adam",
+    "batch": 64,
+    "optimizer": "adamax",
     "epochs": 25,
     "momentum": 0.95,
     "lrate": 0.001},
 "dataset": {
-    "n_samples": 1500
+    "n_samples": 3000
 }}

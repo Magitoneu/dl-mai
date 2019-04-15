@@ -25,6 +25,7 @@ from keras.optimizers import RMSprop, Adam, Adamax, Nadam, SGD
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras.utils import np_utils
 from keras.preprocessing.sequence import pad_sequences
+from keras.regularizers import l1_l2
 from collections import Counter
 import argparse
 import time
@@ -69,21 +70,21 @@ def review_to_words(raw_review):
     return " ".join(meaningful_words)
 
 
-def architecture(neurons, drop, nlayers, rnntype, embedding, numwords, seq_len, impl=1):
+def architecture(neurons, drop, nlayers, rnntype, embedding, numwords, seq_len, impl=1, reg=None):
     """
     RNN architecture
     :return:
     """
     RNN = LSTM if rnntype == 'LSTM' else GRU
     model = Sequential()
-    model.add(Embedding(numwords + 1, embedding, input_length=seq_len))
+    model.add(Embedding(numwords + 1, embedding, mask_zero=True, input_length=seq_len))
     if nlayers == 1:
-        model.add(RNN(neurons, implementation=impl, recurrent_dropout=drop))
+        model.add(RNN(neurons, implementation=impl, recurrent_dropout=drop, kernel_regularizer=reg))
     else:
-        model.add(RNN(neurons, implementation=impl, recurrent_dropout=drop, return_sequences=True))
+        model.add(RNN(neurons, implementation=impl, recurrent_dropout=drop, return_sequences=True, kernel_regularizer=reg))
         for ii in range(1, nlayers - 1):
-            model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl, return_sequences=True))
-        model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl))
+            model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl, return_sequences=True, kernel_regularizer=reg))
+        model.add(RNN(neurons, recurrent_dropout=drop, implementation=impl, kernel_regularizer=reg))
 
     model.add(Dense(5))
     model.add(Activation('softmax'))
@@ -162,7 +163,7 @@ if __name__ == '__main__':
     review_ints = [review for review in review_ints if len(review) > 0]
 
     test_size = 0.1
-    features = pad_sequences(review_ints, maxlen=300)
+    features = pad_sequences(review_ints, maxlen=150)
     train_x, test_x, train_y, test_y = train_test_split(features, labels, test_size=test_size)
 
     print("\t\t\tFeature Shapes:")
@@ -174,13 +175,18 @@ if __name__ == '__main__':
 
     ############################################
     # Model
+    if config['arch']['reg'] == 1:
+        reg = l1_l2(l1=0.01, l2=0.01)
+    else:
+        reg = None
+
     model = architecture(neurons=config['arch']['neurons'],
                          drop=config['arch']['drop'],
                          nlayers=config['arch']['nlayers'],
                          rnntype=config['arch']['rnn'],
                          embedding=config['arch']['emb'],
-                         numwords=numwords,
-                         seq_len=300, impl=2)
+                         numwords=numwords, reg=reg,
+                         seq_len=150, impl=2)
 
     ############################################
 
@@ -221,7 +227,7 @@ if __name__ == '__main__':
         tensorboard = TensorBoard(log_dir='logs/{}'.format(time.time()))
         callbacks.append(tensorboard)
 
-    es = EarlyStopping(monitor='val_loss', patience=5, mode='min')
+    es = EarlyStopping(monitor='val_loss', patience=8, mode='min')
     callbacks.append(es)
 
     print("Start training")
