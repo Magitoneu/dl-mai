@@ -4,7 +4,7 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 
-path = '../datasets/natural_images/'
+path = '../datasets/seen/'
 classes = {}
 all_classes = []
 for root, dirs, files in os.walk(path, topdown=True):
@@ -22,7 +22,7 @@ plt.figure(figsize=(20, 3))
 ax = sns.countplot(all_classes)
 
 ax.set_xticklabels(ax.get_xticklabels(), rotation=65)
-ax.set_xticklabels(ax.get_xticklabels(), fontsize=8)
+ax.set_xticklabels(ax.get_xticklabels(), fontsize=11)
 ax.set_title("Category Frequency vs Category")
 plt.axhline(np.mean(list(classes.values())), color='k', linewidth=2,)
 plt.show()

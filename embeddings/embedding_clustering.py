@@ -42,23 +42,28 @@ def load_data(path, n_classes=None):
     return np.asarray(x), np_utils.to_categorical([indexer[i] for i in y], len(indexer)), unindexer
 
 
-def build_model(n_classes):
+def build_model():
     """
     Function that build the network, it uses the inceptionV3 and the pretrained weights from imagenet. The layer
     avg_pool (the one before the predicting layer) is the one used as embedding.
 
     """
     inception_v3 = InceptionV3(include_top=True, weights='imagenet', classes=1000, input_shape=(299, 299, 3))
-
+    print(inception_v3.summary())
     intermediate_model = Model(inputs=inception_v3.input, outputs=inception_v3.get_layer('avg_pool').output)
     return intermediate_model
 
 
-def embeddings_clustering(embeddings, labels, unindexer):
+def embeddings_clustering(embeddings, labels, unindexer, times=5):
     labels = np.array([unindexer[np.argmax(y)] for y in labels])
     kmeans = KMeans(n_clusters=len(np.unique(labels)))
-    y_pred = kmeans.fit_predict(embeddings)
-    print('Adjusted rand score: ', adjusted_rand_score(labels, y_pred))
+    ars = []
+    for t in range(0, times):
+        y_pred = kmeans.fit_predict(embeddings)
+        ars.append(adjusted_rand_score(labels, y_pred))
+        print('T: %i, Ars: %.4f' % (t, adjusted_rand_score(labels, y_pred)))
+    print('Adjusted rand score: ', np.mean(ars))
+    return np.mean(ars)
 
 
 def spider_embedding(embedding, label, ax, min_v, max_v):
@@ -96,12 +101,12 @@ def show_embeddings(embeddings, labels, n_classes=8):
     """
     min_v = np.min(embeddings)
     max_v = np.max(embeddings)
-    times = 1 + (n_classes // 8)
+    times = 1 + (n_classes // 4)
     print('times :', times, n_classes)
     for t in range(0, times):
-        for i in range(0, min(len(embeddings) - 8*t, 8)):
-            ax = plt.subplot(4, 2, i+1, polar=True)
-            spider_embedding(embeddings[i+(t*8)], labels[i+(t*8)], ax, min_v, max_v)
+        for i in range(0, min(len(embeddings) - 4*t, 4)):
+            ax = plt.subplot(2, 2, i+1, polar=True)
+            spider_embedding(embeddings[i+(t*4)], labels[i+(t*4)], ax, min_v, max_v)
         plt.show()
 
 
@@ -112,6 +117,9 @@ def dimensionality_reduction(embeddings, n_components=8):
     pca = PCA(n_components=n_components)
     embeddings_reduced = pca.fit_transform(embeddings)
     print('Total variance explained using %i components: %.4f' % (n_components, np.sum(pca.explained_variance_ratio_)))
+    print(np.cumsum(pca.explained_variance_ratio_))
+    plt.plot(np.cumsum(pca.explained_variance_ratio_))
+    plt.show()
     return embeddings_reduced
 
 
@@ -144,7 +152,7 @@ def represent_embeddings(embeddings, ys, unindexer):
     for label in np.unique(ys):
         emb_class = emb_reduced[np.argwhere(ys == label).flatten()]
         emb_mean.append(np.mean(emb_class, axis=0))
-        chosen = np.random.choice(list(range(0, len(emb_class))), 4)
+        chosen = np.random.choice(list(range(0, len(emb_class))), min(len(emb_class), 6))
         emb_choose.append(np.asarray(emb_class)[chosen])
 
     show_embeddings(emb_mean, np.unique(ys), n_classes=len(emb_mean))
@@ -153,11 +161,10 @@ def represent_embeddings(embeddings, ys, unindexer):
 
 if __name__ == '__main__':
     # Prepare dataset
-    # path_natural = '/home/magi/mai/s2/dl/lab/datasets/natural_images'
-    path_caltech = '/home/magi/mai/s2/dl/lab/datasets/101_ObjectCategories/'
-    x, y, unindexer = load_data(path_caltech, n_classes=20)
+    path_caltech = '/home/magi/mai/s2/dl/lab/datasets/unseen/'
+    x, y, unindexer = load_data(path_caltech, n_classes=None)
 
-    images_per_class = 50
+    images_per_class = 40
     x_reduced, y_reduced = [], []
 
     y_labels = np.array([unindexer[np.argmax(y)] for y in y])
@@ -168,19 +175,20 @@ if __name__ == '__main__':
 
     x_reduced = np.asarray(x_reduced)
     y_reduced = np.asarray(y_reduced)
-    print(x_reduced.shape, y_reduced.shape)
     datagen = ImageDataGenerator(rescale=1./255)
     train_generator = datagen.flow(x_reduced, y_reduced, batch_size=len(y_reduced))
     x_reduced, y_reduced = train_generator.next()
 
+    print('Total instances used: ', len(y_reduced))
+
     # Create model
-    embedding_model = build_model(len(np.unique(y_reduced, axis=0)))
+    embedding_model = build_model()
 
     # Compute embeddings
     embeddings = np.asarray(embedding_model.predict(x_reduced))
 
     # Cluster data
-    # embeddings_clustering(embeddings, y_reduced, unindexer)
+    _ = embeddings_clustering(embeddings, y_reduced, unindexer, times=5)
 
     # Embeddings representation
     represent_embeddings(embeddings, y_reduced, unindexer)
