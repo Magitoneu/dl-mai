@@ -1,0 +1,19 @@
+unseen:
+Total instances used:  594
+Run Adjusted rand score
+0, 0.7208
+1, 0.7512
+2, 0.8562
+3, 0.7997
+4, 0.7918
+Adjusted rand score:  0.7839321921013328
+
+seen:
+Total instances used:  650
+0, 0.9278
+1, 0.8535
+2, 0.9394
+3, 0.8466
+4, 0.9438
+Adjusted rand score:  0.9022273249478004
+
