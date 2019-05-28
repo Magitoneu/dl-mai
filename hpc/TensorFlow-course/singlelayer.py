@@ -2,6 +2,7 @@
 import tensorflow as tf
 import read_inputs
 import numpy as N
+import matplotlib.pyplot as plt
 
 
 #read data from file
@@ -32,25 +33,40 @@ y_ = tf.placeholder(tf.float32, [None, 10])
 
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 
-train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+lr = 0.5
+train_step = tf.train.AdamOptimizer(lr).minimize(cross_entropy)
 
 sess = tf.InteractiveSession()
 tf.global_variables_initializer().run()
 
 #TRAINING PHASE
 print("TRAINING")
+loss_history = []
+acc_history = []
+correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
 
 for i in range(500):
   batch_xs = data[0][0][100*i:100*i+100]
   batch_ys = real_output[100*i:100*i+100]
   sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+  loss = sess.run([cross_entropy, accuracy], feed_dict={x: batch_xs, y_: batch_ys})
+  loss_history.append(loss[0])
+  acc_history.append(loss[1])
 
+plt.plot(loss_history)
+method = 'Adam ' + str(lr)
+plt.title('Loss ' + method)
+plt.savefig('/home/magi/mai/s2/dl/lab/hpc/2_loss_' + method + '.png')
+plt.show()
 
+plt.plot(acc_history)
+plt.title('Accuracy ' + method)
+plt.savefig('/home/magi/mai/s2/dl/lab/hpc/2_acc_' + method + '.png')
+plt.show()
 #CHECKING THE ERROR
 print("ERROR CHECK")
-
-correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 print(sess.run(accuracy, feed_dict={x: data[2][0], y_: real_check}))
 
 
