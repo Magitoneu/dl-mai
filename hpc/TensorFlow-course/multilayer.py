@@ -2,6 +2,8 @@
 import tensorflow as tf
 import read_inputs
 import numpy as N
+import matplotlib.pyplot as plt
+
 
 """
 Accuracy: 0.9873
@@ -108,6 +110,8 @@ correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 batch_size = 128
+loss_history = []
+acc_history = []
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
@@ -122,15 +126,29 @@ with tf.Session() as sess:
         batch_xs = data[0][0][batch_idx]
         batch_ys = real_output[batch_idx]
 
-        if i % 10 == 0:
-            train_accuracy = accuracy.eval(feed_dict={
-                x: batch_xs, y_: batch_ys, keep_prob: 1.0})
-            print('step %d, training accuracy %g' % (i, train_accuracy))
+        _, loss = sess.run([train_step, cross_entropy], feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5})
 
-        train_step.run(feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5})
+        train_accuracy = accuracy.eval(feed_dict={
+            x: batch_xs, y_: batch_ys, keep_prob: 1.0})
+
+        loss_history.append(loss)
+        acc_history.append(train_accuracy)
+        if i % 10 == 0:
+            print('step %d, training accuracy %g' % (i, train_accuracy))
 
     # TEST
     print("TESTING")
+
+    plt.plot(loss_history)
+    plt.title('Loss')
+    plt.savefig('loss.png')
+    plt.show()
+
+    plt.plot(acc_history)
+    print(acc_history)
+    plt.title('Accuracy')
+    plt.savefig('acc.png')
+    plt.show()
 
     train_accuracy = accuracy.eval(feed_dict={x: data[2][0], y_: real_check, keep_prob: 1.0})
     print('test accuracy %g' % (train_accuracy))

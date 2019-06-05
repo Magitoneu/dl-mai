@@ -30,7 +30,7 @@ print("W: %s b: %s loss: %s" % (curr_W, curr_b, curr_loss))
 
 losses = []
 
-for i in range(1000):
+for i in range(2000):
     sess.run(train, {x: x_train, y: y_train})
     curr_W, curr_b, curr_loss = sess.run([W, b, loss], {x: x_train, y: y_train})
     print("W: %s b: %s loss: %s" % (curr_W, curr_b, curr_loss))

@@ -34,7 +34,7 @@ y_ = tf.placeholder(tf.float32, [None, 10])
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 
 lr = 0.5
-train_step = tf.train.AdamOptimizer(lr).minimize(cross_entropy)
+train_step = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
 
 sess = tf.InteractiveSession()
 tf.global_variables_initializer().run()
